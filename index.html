@@ -45,7 +45,7 @@
       const map = new mapboxgl.Map({
         container: "map",
         projection: "globe",
-        style: "mapbox://styles/mohsin195kfantico/cl6mq897h000e14nu1srzu3p4", // style URL
+        style: "mapbox://styles/mohsin195kfantico/cl6mq897h000e14nu1srzu3p4/draft", // style URL
         center: center, // starting position [lng, lat]
         zoom: 15, // starting zoom
       });
@@ -96,7 +96,7 @@
 
           // Loading Model as GLTF
           const loader = new THREE.GLTFLoader();
-          loader.load("model/dog1.glb", (gltf) => {
+          loader.load("/model/dog1.glb", (gltf) => {
             this.scene.add(gltf.scene);
           });
           this.map = map;
