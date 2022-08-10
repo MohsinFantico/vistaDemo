@@ -96,7 +96,7 @@
 
           // Loading Model as GLTF
           const loader = new THREE.GLTFLoader();
-          loader.load("/model/dog1.glb", (gltf) => {
+          loader.load("model/dog1.glb", (gltf) => {
             this.scene.add(gltf.scene);
           });
           this.map = map;
