@@ -4,10 +4,22 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css"
+      type="text/css"
+    />
     <title>Map Demo</title>
     <link
       href="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css"
       rel="stylesheet"
+    />
+    <!-- CSS only -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx"
+      crossorigin="anonymous"
     />
     <style>
       body {
@@ -17,141 +29,225 @@
         height: 100vh;
         width: 100vw;
       }
+      .select-box {
+        position: absolute;
+        top: 200px;
+        right: 10px;
+        z-index: 11;
+      }
     </style>
   </head>
   <body>
     <div id="map"></div>
+    <div id="selectBox" class="select-box">
+      <div class="dropdown">
+        <button
+          class="btn btn-secondary dropdown-toggle"
+          type="button"
+          id="dropdownMenuButton1"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          Select Location
+        </button>
+        <ul
+          class="dropdown-menu"
+          id="dropdownMenu"
+          aria-labelledby="dropdownMenuButton1"
+        ></ul>
+      </div>
+    </div>
   </body>
+  <!-- JavaScript Bundle with Popper -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+    integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+    crossorigin="anonymous"
+  ></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+    integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+    crossorigin="anonymous"
+  ></script>
+  <script type="text/script" src="data/x.json"></script>
+
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
   <script src="https://unpkg.com/three@0.126.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script
+    src="https://code.jquery.com/jquery-3.6.0.min.js"
+    integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+    crossorigin="anonymous"
+  ></script>
   <script>
-    mapboxgl.accessToken =
-      "pk.eyJ1IjoibW9oc2luMTk1a2ZhbnRpY28iLCJhIjoiY2w2bHkzZ3NpMDZhMjNlbzFzdWh1Z2JkYSJ9.OBDVhdyBUqtkX2VLRGiXcQ";
-    const successLocation = (position) => {
-      console.log(position);
-      setupMap([position.coords.longitude, position.coords.latitude]);
+    // Navigator to get current location
+    var objData;
+
+    fetch("./data/x.json")
+      .then((response) => {
+        return response.json();
+      })
+      .then((jsondata) => {
+        console.log(jsondata);
+        objData = jsondata;
+        objData.map((data) => {
+          // const optionElm = document.createElement("option");
+          // optionElm.append(data.layerName);
+          // document.getElementById("dropdownMenu").appendChild(optionElm);
+          document.getElementById(
+            "dropdownMenu"
+          ).innerHTML += `<li><a  class="dropdown-item" href="javascript:void(0)" data-layerId=${data.layerId}>${data.layerName}</a></li>`;
+        });
+      });
+    const SuccessLocation = (position) => {
+      SetupMap([position.coords.longitude, position.coords.latitude]);
     };
-    const errorLocation = (position) => {
-      console.log(position);
+    const ErrorLocation = (position) => {
+      console.log(position.coords);
     };
     const nav = navigator.geolocation.getCurrentPosition(
-      successLocation,
-      errorLocation,
+      SuccessLocation,
+      ErrorLocation,
       { enableHighAccuracy: true }
     );
 
-    const setupMap = (center) => {
-      const map = new mapboxgl.Map({
+    // Setting Up Map
+    const SetupMap = (center) => {
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoibW9oc2luMTk1a2ZhbnRpY28iLCJhIjoiY2w2bXI0YzI1MG82YjNpcnVzcGp1dXNjbiJ9.SNO7DCjpVFhXILNlC-ffzw";
+      const mapBox = new mapboxgl.Map({
         container: "map",
-        projection: "globe",
-        style: "mapbox://styles/mohsin195kfantico/cl6mq897h000e14nu1srzu3p4/draft", // style URL
-        center: center, // starting position [lng, lat]
-        zoom: 15, // starting zoom
+        zoom: 1.5,
+        bearing: 1,
+        center: [0, 0],
+        antialias: true,
+        style:
+          "mapbox://styles/mohsin195kfantico/cl6oxnl8o001t14n0zre3uib7/draft",
       });
-
-      // Adding 3d Object
-      // Ensure correct georefference
-      const modelOrigin = center;
-      const modelAltitude = 0;
-      const modelRotate = [Math.PI / 2, 0, 0];
-
-      const modelAsMercatorCoordinate = mapboxgl.MercatorCoordinate.fromLngLat(
-        modelOrigin,
-        modelAltitude
+      // Loading Navigation
+      mapBox.addControl(
+        new MapboxGeocoder({
+          accessToken: mapboxgl.accessToken,
+          mapboxgl: mapboxgl,
+        })
       );
+      mapBox.addControl(new mapboxgl.NavigationControl());
 
-      // transforming 3d mode Location and Rotation as per Map
-      const modelTransform = {
-        translateX: modelAsMercatorCoordinate.x,
-        translateY: modelAsMercatorCoordinate.y,
-        translateZ: modelAsMercatorCoordinate.z,
-        rotateX: modelRotate[0],
-        rotateY: modelRotate[1],
-        rotateZ: modelRotate[2],
+      // Loading 3D Models
+      const LoadModels = (objData) => {
+        const modelLocation = objData.location;
+        const modelAltitude = 0;
+        const modelRotate = [Math.PI / 2, 0, 0];
 
-        // Scaling model from real world size to relative map size
-        scale: modelAsMercatorCoordinate.meterInMercatorCoordinateUnits()*100,
-      };
+        const modelAsMercatorCoord = mapboxgl.MercatorCoordinate.fromLngLat(
+          modelLocation,
+          modelAltitude
+        );
+        // Transforming,Scaling,Rotating object as per Map
+        const modelTransform = {
+          translateX: modelAsMercatorCoord.x,
+          translateY: modelAsMercatorCoord.y,
+          translateZ: modelAsMercatorCoord.z,
+          rotateX: modelRotate[0],
+          rotateY: modelRotate[1],
+          rotateZ: modelRotate[2],
+          // scaling object in map unit
+          scale: modelAsMercatorCoord.meterInMercatorCoordinateUnits() * 5,
+        };
+        const THREE = window.THREE;
+        const customLayer = {
+          id: objData.layerName,
+          type: "custom",
+          renderingMode: "3d",
+          onAdd: function (map, gl) {
+            this.camera = new THREE.Camera();
+            this.scene = new THREE.Scene();
 
-      // Setting up THREE.JS
-      const THREE = window.THREE;
+            // create two three.js lights to illuminate the model
+            const directionalLight = new THREE.DirectionalLight(0xffffff);
+            directionalLight.position.set(0, 0, 160).normalize();
+            this.scene.add(directionalLight);
 
-      // creating custom layer in MapBox
-      const customLayer = {
-        id: "3d-Model",
-        type: "custom",
-        renderingMode: "3d",
-        onAdd: function (map, gl) {
-          this.camera = new THREE.Camera();
-          this.scene = new THREE.Scene();
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff);
+            directionalLight2.position.set(0, 10, -160).normalize();
+            this.scene.add(directionalLight2);
 
-          const directionalLight = new THREE.DirectionalLight(0xffffff);
-          directionalLight.position.set(0, -70, 100).normalize();
-          this.scene.add(directionalLight);
+            // use the three.js GLTF loader to add the 3D model to the three.js scene
+            const loader = new THREE.GLTFLoader();
+            loader.load(objData.modelPath, (gltf) => {
+              this.scene.add(gltf.scene);
+            });
+            this.map = map;
 
-          const directionalLight2 = new THREE.DirectionalLight(0xffffff);
-          directionalLight2.position.set(0, 70, 100).normalize();
-          this.scene.add(directionalLight2);
+            // use the Mapbox GL JS map canvas for three.js
+            this.renderer = new THREE.WebGLRenderer({
+              canvas: map.getCanvas(),
+              context: gl,
+              antialias: true,
+            });
 
-          // Loading Model as GLTF
-          const loader = new THREE.GLTFLoader();
-          loader.load("model/dog1.glb", (gltf) => {
-            this.scene.add(gltf.scene);
-          });
-          this.map = map;
+            this.renderer.autoClear = false;
+          },
+          render: function (gl, matrix) {
+            const rotationX = new THREE.Matrix4().makeRotationAxis(
+              new THREE.Vector3(1, 0, 0),
+              modelTransform.rotateX
+            );
+            const rotationY = new THREE.Matrix4().makeRotationAxis(
+              new THREE.Vector3(0, 1, 0),
+              modelTransform.rotateY
+            );
+            const rotationZ = new THREE.Matrix4().makeRotationAxis(
+              new THREE.Vector3(0, 0, 1),
+              modelTransform.rotateZ
+            );
 
-          // use the Mapbox GL JS map canvas for three.js
-          this.renderer = new THREE.WebGLRenderer({
-            canvas: map.getCanvas(),
-            context: gl,
-            antialias: true,
-          });
-
-          this.renderer.autoClear = false;
-        },
-        render: function (gl, matrix) {
-          const rotationX = new THREE.Matrix4().makeRotationAxis(
-            new THREE.Vector3(1, 0, 0),
-            modelTransform.rotateX
-          );
-          const rotationY = new THREE.Matrix4().makeRotationAxis(
-            new THREE.Vector3(0, 1, 0),
-            modelTransform.rotateY
-          );
-          const rotationZ = new THREE.Matrix4().makeRotationAxis(
-            new THREE.Vector3(0, 0, 1),
-            modelTransform.rotateZ
-          );
-
-          const m = new THREE.Matrix4().fromArray(matrix);
-          const l = new THREE.Matrix4()
-            .makeTranslation(
-              modelTransform.translateX,
-              modelTransform.translateY,
-              modelTransform.translateZ
-            )
-            .scale(
-              new THREE.Vector3(
-                modelTransform.scale,
-                -modelTransform.scale,
-                modelTransform.scale
+            const m = new THREE.Matrix4().fromArray(matrix);
+            const l = new THREE.Matrix4()
+              .makeTranslation(
+                modelTransform.translateX,
+                modelTransform.translateY,
+                modelTransform.translateZ
               )
-            )
-            .multiply(rotationX)
-            .multiply(rotationY)
-            .multiply(rotationZ);
+              .scale(
+                new THREE.Vector3(
+                  modelTransform.scale,
+                  -modelTransform.scale,
+                  modelTransform.scale
+                )
+              )
+              .multiply(rotationX)
+              .multiply(rotationY)
+              .multiply(rotationZ);
 
-          this.camera.projectionMatrix = m.multiply(l);
-          this.renderer.resetState();
-          this.renderer.render(this.scene, this.camera);
-          this.map.triggerRepaint();
-        },
+            this.camera.projectionMatrix = m.multiply(l);
+            this.renderer.resetState();
+            this.renderer.render(this.scene, this.camera);
+            this.map.triggerRepaint();
+          },
+        };
+        mapBox.addLayer(customLayer, "water");
       };
-
-      map.on("style.load", () => {
-        map.addLayer(customLayer, "state-label");
+      mapBox.on("style.load", () => {
+        objData.map((data) => {
+          LoadModels(data);
+        });
       });
+      mapBox.on("click", (event) => {
+        console.log(event.lngLat.lng, event.lngLat.lat);
+        mapBox.flyTo({
+          center: [event.lngLat.lng, event.lngLat.lat],
+          zoom: mapBox.getZoom() + 5,
+        });
+      });
+      setTimeout(() => {
+        mapBox.flyTo({
+          center:[72.84504309296608,19.119336029146286],
+          zoom:18.1,
+          pitch:50
+        })
+      }, 1000);
     };
   </script>
 </html>

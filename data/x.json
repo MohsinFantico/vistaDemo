@@ -1,0 +1,38 @@
+[
+  {
+    "layerId": "1",
+    "layerName": "layer1",
+    "location": [
+      72.84504309296608,
+      19.119336029146286
+    ],
+    "modelPath": "model/Building2.glb"
+  },
+  {
+    "layerId": "2",
+    "layerName": "layer2",
+    "location": [
+      72.84520000219345,
+      19.12034592634115
+    ],
+    "modelPath": "model/firestation1.glb"
+  },
+  {
+    "layerId": "3",
+    "layerName": "layer3",
+    "location": [
+      72.8460744023323,
+      19.119942981901662
+    ],
+    "modelPath": "model/pizzashop.glb"
+  },
+  {
+    "layerId": "4",
+    "layerName": "layer4",
+    "location": [
+      72.8454977274941,
+      19.12170807441197
+    ],
+    "modelPath": "model/villa.glb"
+  }
+]
