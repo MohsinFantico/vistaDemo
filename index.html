@@ -4,12 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css"
-      type="text/css"
-    />
-    <title>Map Demo</title>
+    <title>Document</title>
     <link
       href="https://api.mapbox.com/mapbox-gl-js/v2.9.2/mapbox-gl.css"
       rel="stylesheet"
@@ -35,6 +30,24 @@
         right: 10px;
         z-index: 11;
       }
+      .marker {
+        background-image: url('marker.png');
+        background-size: cover;
+        background-size: cover;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        position: absolute;
+        cursor: pointer;
+      }
+      .mapboxgl-popup {
+        max-width: 200px;
+      }
+
+      .mapboxgl-popup-content {
+        text-align: center;
+        font-family: "Open Sans", sans-serif;
+      }
     </style>
   </head>
   <body>
@@ -58,7 +71,6 @@
       </div>
     </div>
   </body>
-  <!-- JavaScript Bundle with Popper -->
   <script
     src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
     integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
@@ -91,14 +103,6 @@
       .then((jsondata) => {
         console.log(jsondata);
         objData = jsondata;
-        objData.map((data) => {
-          // const optionElm = document.createElement("option");
-          // optionElm.append(data.layerName);
-          // document.getElementById("dropdownMenu").appendChild(optionElm);
-          document.getElementById(
-            "dropdownMenu"
-          ).innerHTML += `<li><a  class="dropdown-item" href="javascript:void(0)" data-layerId=${data.layerId}>${data.layerName}</a></li>`;
-        });
       });
     const SuccessLocation = (position) => {
       SetupMap([position.coords.longitude, position.coords.latitude]);
@@ -114,16 +118,24 @@
 
     // Setting Up Map
     const SetupMap = (center) => {
+      const bounds = [
+        [72.6411255070224, 18.91420774175809], // Southwest coordinates
+        [73.04964629920514, 19.29701610394325], // Northeast coordinates
+      ];
+
       mapboxgl.accessToken =
         "pk.eyJ1IjoibW9oc2luMTk1a2ZhbnRpY28iLCJhIjoiY2w2bXI0YzI1MG82YjNpcnVzcGp1dXNjbiJ9.SNO7DCjpVFhXILNlC-ffzw";
       const mapBox = new mapboxgl.Map({
         container: "map",
-        zoom: 1.5,
-        bearing: 1,
-        center: [0, 0],
+        center: [  72.80673453457507,
+      18.902928262908475],
+        zoom: 20.8,
+        pitch: 70,
+        bearing: -90,
+        // maxBounds: bounds,
         antialias: true,
         style:
-          "mapbox://styles/mohsin195kfantico/cl6oxnl8o001t14n0zre3uib7/draft",
+          "mapbox://styles/mohsin195kfantico/cl7b0wbzp002e15quk0jgjqes/draft",
       });
       // Loading Navigation
       mapBox.addControl(
@@ -145,15 +157,16 @@
           modelAltitude
         );
         // Transforming,Scaling,Rotating object as per Map
+        console.log(modelAsMercatorCoord.x);
         const modelTransform = {
-          translateX: modelAsMercatorCoord.x,
+          translateX: modelAsMercatorCoord.x + 0.000002,
           translateY: modelAsMercatorCoord.y,
           translateZ: modelAsMercatorCoord.z,
           rotateX: modelRotate[0],
           rotateY: modelRotate[1],
           rotateZ: modelRotate[2],
           // scaling object in map unit
-          scale: modelAsMercatorCoord.meterInMercatorCoordinateUnits() * 5,
+          scale: modelAsMercatorCoord.meterInMercatorCoordinateUnits() * 2,
         };
         const THREE = window.THREE;
         const customLayer = {
@@ -166,17 +179,20 @@
 
             // create two three.js lights to illuminate the model
             const directionalLight = new THREE.DirectionalLight(0xffffff);
-            directionalLight.position.set(0, 0, 160).normalize();
+            directionalLight.position.set(0, -70, 100).normalize();
             this.scene.add(directionalLight);
 
             const directionalLight2 = new THREE.DirectionalLight(0xffffff);
-            directionalLight2.position.set(0, 10, -160).normalize();
+            directionalLight2.position.set(0, 70, 100).normalize();
             this.scene.add(directionalLight2);
 
             // use the three.js GLTF loader to add the 3D model to the three.js scene
             const loader = new THREE.GLTFLoader();
             loader.load(objData.modelPath, (gltf) => {
+              this.camera.renderOrder = 1;
+              this.renderer.autoClearDepth = false;
               this.scene.add(gltf.scene);
+              console.log(this.renderer.sortObjects);
             });
             this.map = map;
 
@@ -227,27 +243,47 @@
             this.map.triggerRepaint();
           },
         };
-        mapBox.addLayer(customLayer, "water");
+        mapBox.addLayer(customLayer, "mumbai-land-demo copy");
       };
+      let selectedFeatures;
+      mapBox.on("load", () => {
+        selectedFeatures1 = mapBox
+          .queryRenderedFeatures({
+            layers: ["mumbai-land-demo copy"],
+          })
+          .filter((item) => item.properties["description"]);
+        selectedFeatures1.map((marker) => {
+          console.log(marker);
+          const el = document.createElement("div");
+          el.className = "marker";
+          const cord = marker.properties["LngLat"].split(",");
+          console.log(cord);
+          new mapboxgl.Marker(el).setLngLat(cord).setPopup(
+              new mapboxgl.Popup({ offset: 25 }) // add popups
+                .setHTML(
+                  `<h5>${marker.properties.title}:${marker.properties.location}</h5><p>${marker.properties.description}</p><div><button>Check</button></div>`
+                )
+            ).addTo(mapBox);
+        });
+      });
       mapBox.on("style.load", () => {
         objData.map((data) => {
           LoadModels(data);
         });
+        console.log(mapBox);
       });
-      mapBox.on("click", (event) => {
-        console.log(event.lngLat.lng, event.lngLat.lat);
-        mapBox.flyTo({
-          center: [event.lngLat.lng, event.lngLat.lat],
-          zoom: mapBox.getZoom() + 5,
-        });
+      mapBox.on("click", (e) => {
+        var features = mapBox.getLayer("mumbai-land-demo copy");
       });
-      setTimeout(() => {
-        mapBox.flyTo({
-          center:[72.84504309296608,19.119336029146286],
-          zoom:18.1,
-          pitch:50
-        })
-      }, 1000);
+
+      // setTimeout(() => {
+      //   mapBox.flyTo({
+      //     center: [72.9695950841774, 19.26010706841616],
+      //     zoom: 16.1,
+      //     pitch: 60,
+      //     bearing: 40,
+      //   });
+      // }, 1000);
     };
   </script>
 </html>

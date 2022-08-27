@@ -1,38 +1,29 @@
 [
   {
-    "layerId": "1",
+    "layerId": "3",
     "layerName": "layer1",
     "location": [
-      72.84504309296608,
-      19.119336029146286
+      72.81462908433469,
+      18.9125163619949
     ],
-    "modelPath": "model/Building2.glb"
+    "modelPath": "model/rk.glb"
   },
   {
-    "layerId": "2",
+    "layerId": "3",
     "layerName": "layer2",
     "location": [
-      72.84520000219345,
-      19.12034592634115
+      79.81084895133972,
+      18.898805768839697
     ],
-    "modelPath": "model/firestation1.glb"
+    "modelPath": "model/Burger1.glb"
   },
   {
     "layerId": "3",
     "layerName": "layer3",
     "location": [
-      72.8460744023323,
-      19.119942981901662
+      79.81330585479736,
+      18.90902697706614
     ],
-    "modelPath": "model/pizzashop.glb"
-  },
-  {
-    "layerId": "4",
-    "layerName": "layer4",
-    "location": [
-      72.8454977274941,
-      19.12170807441197
-    ],
-    "modelPath": "model/villa.glb"
+    "modelPath": "model/firestation1.glb"
   }
 ]
